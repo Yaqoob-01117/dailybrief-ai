@@ -1,0 +1,190 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DailyBrief AI | Current Affairs</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+body{background:#0b1120;color:#e5e7eb;font-family:Arial,sans-serif}
+.card{background:#151f32;border:1px solid #26344a;border-radius:14px;overflow:hidden}
+.card img{width:100%;height:190px;object-fit:cover}
+.category{padding:9px 16px;border-radius:20px;background:#1e293b;color:#cbd5e1}
+.category.active{background:#2563eb;color:white}
+input{background:#151f32;border:1px solid #334155;color:white}
+button{cursor:pointer}
+.article-content{color:#cbd5e1;line-height:1.7}
+</style>
+</head>
+<body>
+<header class="max-w-7xl mx-auto px-5 py-6 flex flex-wrap justify-between items-center gap-4">
+  <div>
+    <h1 class="text-3xl font-bold text-white">DailyBrief <span class="text-blue-400">AI.</span></h1>
+    <p class="text-gray-400 text-sm mt-1">Your personal current affairs intelligence</p>
+  </div>
+  <div class="text-sm text-blue-300">● LIVE NEWS DATABASE</div>
+</header>
+
+<main class="max-w-7xl mx-auto px-5 pb-12">
+  <section class="rounded-2xl p-7 md:p-10 mb-8" style="background:linear-gradient(120deg,#172554,#164e63)">
+    <p class="text-blue-200 text-sm font-semibold">YOUR DAILY INTELLIGENCE</p>
+    <h2 class="text-3xl md:text-4xl font-bold text-white mt-3">Understand what's happening in the world.</h2>
+    <p class="text-blue-100 mt-3 max-w-2xl">Explore current affairs, understand the background, and discover why today's news matters.</p>
+    <p id="today" class="text-blue-200 text-sm mt-5"></p>
+  </section>
+
+  <section class="flex flex-col md:flex-row gap-4 justify-between mb-6">
+    <div>
+      <h2 class="text-2xl font-bold">Latest News</h2>
+      <p class="text-gray-400 text-sm mt-1">News collected and explained by your AI agent</p>
+    </div>
+    <input id="search" type="search" placeholder="Search news..." class="rounded-lg px-4 py-3 w-full md:w-72">
+  </section>
+
+  <nav id="categories" class="flex flex-wrap gap-2 mb-7">
+    <button class="category active" data-category="All">All News</button>
+    <button class="category" data-category="Pakistan">Pakistan</button>
+    <button class="category" data-category="World">World</button>
+    <button class="category" data-category="Economy">Economy</button>
+    <button class="category" data-category="Science">Science</button>
+    <button class="category" data-category="Technology">Technology</button>
+    <button class="category" data-category="Environment">Environment</button>
+  </nav>
+
+  <div id="status" class="text-gray-400 py-8 text-center">Connecting to your news database...</div>
+  <section id="news" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></section>
+</main>
+
+<footer class="border-t border-gray-800 py-7 text-center text-gray-500 text-sm">
+  DailyBrief AI · Your personal current affairs project
+</footer>
+
+<script type="module">
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+
+const SUPABASE_URL = 'https://iiaucnlsowwkwqscqsbv.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_aqeMqpp4ZogfJt4_iWDdfQ_RVQIrcgU';
+
+const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+let articles = [];
+let activeCategory = 'All';
+
+document.getElementById('today').textContent =
+  new Date().toLocaleDateString('en-PK',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+
+function escapeHTML(value='') {
+  return String(value).replace(/[&<>"']/g, c => ({
+    '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+  })[c]);
+}
+
+function renderNews() {
+  const search = document.getElementById('search').value.toLowerCase();
+
+  const filtered = articles.filter(article => {
+    const categoryMatch = activeCategory === 'All' ||
+      (article.category || '').toLowerCase() === activeCategory.toLowerCase();
+
+    const searchMatch = [
+      article.title, article.summary, article.background,
+      article.category, article.publisher
+    ].join(' ').toLowerCase().includes(search);
+
+    return categoryMatch && searchMatch;
+  });
+
+  const container = document.getElementById('news');
+  const status = document.getElementById('status');
+
+  container.innerHTML = '';
+
+  if (!filtered.length) {
+    status.textContent = articles.length
+      ? 'No matching articles found. Try another category or search.'
+      : 'No news articles yet. Your n8n agent will add them here.';
+    return;
+  }
+
+  status.textContent = `${filtered.length} articles found`;
+
+  filtered.forEach(article => {
+    const card = document.createElement('article');
+    card.className = 'card';
+
+    const image = article.image_url && /^https?:\/\//i.test(article.image_url)
+      ? `<img src="${escapeHTML(article.image_url)}" alt="" loading="lazy" onerror="this.style.display='none'">`
+      : `<div style="height:190px;background:linear-gradient(135deg,#1e3a8a,#164e63);display:flex;align-items:center;justify-content:center;font-size:45px">🌍</div>`;
+
+    const date = article.published_at
+      ? new Date(article.published_at).toLocaleDateString()
+      : 'Date unavailable';
+
+    card.innerHTML = `
+      ${image}
+      <div class="p-5">
+        <div class="flex justify-between items-center gap-2 mb-3">
+          <span class="text-blue-300 text-xs font-bold">${escapeHTML(article.category || 'Current Affairs')}</span>
+          <span class="text-gray-500 text-xs">${escapeHTML(date)}</span>
+        </div>
+        <h3 class="text-xl font-bold text-white mb-3">${escapeHTML(article.title)}</h3>
+        <p class="article-content text-sm mb-4">${escapeHTML(article.summary || 'Summary not available yet.')}</p>
+        ${article.background ? `
+          <details class="mb-4">
+            <summary class="text-blue-300 cursor-pointer text-sm font-semibold">Historical background</summary>
+            <p class="article-content text-sm mt-2">${escapeHTML(article.background)}</p>
+          </details>` : ''}
+        ${article.why_it_matters ? `
+          <details class="mb-4">
+            <summary class="text-blue-300 cursor-pointer text-sm font-semibold">Why it matters</summary>
+            <p class="article-content text-sm mt-2">${escapeHTML(article.why_it_matters)}</p>
+          </details>` : ''}
+        <div class="border-t border-gray-700 pt-4 flex justify-between items-center gap-2">
+          <span class="text-gray-500 text-xs">${escapeHTML(article.publisher || 'News source')}</span>
+          <a href="${/^https?:\/\//i.test(article.source_url || '') ? escapeHTML(article.source_url) : '#'}"
+             target="_blank" rel="noopener noreferrer"
+             class="text-blue-400 text-sm font-semibold">Read Original ↗</a>
+        </div>
+      </div>`;
+
+    container.appendChild(card);
+  });
+}
+
+async function loadNews() {
+  const { data, error } = await supabase
+    .from('news')
+    .select('*')
+    .order('published_at', {ascending:false})
+    .limit(100);
+
+  if (error) {
+    document.getElementById('status').textContent =
+      'Could not load news: ' + error.message;
+    return;
+  }
+
+  articles = data || [];
+  renderNews();
+}
+
+document.getElementById('search').addEventListener('input',renderNews);
+
+document.getElementById('categories').addEventListener('click',event => {
+  const button = event.target.closest('button[data-category]');
+  if (!button) return;
+
+  activeCategory = button.dataset.category;
+
+  document.querySelectorAll('.category').forEach(item =>
+    item.classList.toggle('active',item === button)
+  );
+
+  renderNews();
+});
+
+loadNews();
+</script>
+</body>
+</html>
