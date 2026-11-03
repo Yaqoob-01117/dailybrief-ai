@@ -15,6 +15,10 @@ body{background:#0b1120;color:#e5e7eb;font-family:Arial,sans-serif}
 input{background:#151f32;border:1px solid #334155;color:white}
 button{cursor:pointer}
 .article-content{color:#cbd5e1;line-height:1.7}
+details summary{list-style:none}
+details summary::-webkit-details-marker{display:none}
+details summary::after{content:'+';float:right}
+details[open] summary::after{content:'−'}
 </style>
 </head>
 <body>
@@ -88,8 +92,13 @@ function renderNews() {
       (article.category || '').toLowerCase() === activeCategory.toLowerCase();
 
     const searchMatch = [
-      article.title, article.summary, article.background,
-      article.category, article.publisher
+      article.title,
+      article.summary,
+      article.background,
+      article.why_it_matters,
+      article.key_facts,
+      article.category,
+      article.publisher
     ].join(' ').toLowerCase().includes(search);
 
     return categoryMatch && searchMatch;
@@ -128,18 +137,29 @@ function renderNews() {
           <span class="text-blue-300 text-xs font-bold">${escapeHTML(article.category || 'Current Affairs')}</span>
           <span class="text-gray-500 text-xs">${escapeHTML(date)}</span>
         </div>
+
         <h3 class="text-xl font-bold text-white mb-3">${escapeHTML(article.title)}</h3>
+
         <p class="article-content text-sm mb-4">${escapeHTML(article.summary || 'Summary not available yet.')}</p>
+
         ${article.background ? `
           <details class="mb-4">
-            <summary class="text-blue-300 cursor-pointer text-sm font-semibold">Historical background</summary>
+            <summary class="text-blue-300 cursor-pointer text-sm font-semibold">Historical Background</summary>
             <p class="article-content text-sm mt-2">${escapeHTML(article.background)}</p>
           </details>` : ''}
+
         ${article.why_it_matters ? `
           <details class="mb-4">
-            <summary class="text-blue-300 cursor-pointer text-sm font-semibold">Why it matters</summary>
+            <summary class="text-blue-300 cursor-pointer text-sm font-semibold">Why It Matters</summary>
             <p class="article-content text-sm mt-2">${escapeHTML(article.why_it_matters)}</p>
           </details>` : ''}
+
+        ${article.key_facts ? `
+          <details class="mb-4">
+            <summary class="text-blue-300 cursor-pointer text-sm font-semibold">Key Facts & Uncertainties</summary>
+            <p class="article-content text-sm mt-2 whitespace-pre-line">${escapeHTML(article.key_facts)}</p>
+          </details>` : ''}
+
         <div class="border-t border-gray-700 pt-4 flex justify-between items-center gap-2">
           <span class="text-gray-500 text-xs">${escapeHTML(article.publisher || 'News source')}</span>
           <a href="${/^https?:\/\//i.test(article.source_url || '') ? escapeHTML(article.source_url) : '#'}"
