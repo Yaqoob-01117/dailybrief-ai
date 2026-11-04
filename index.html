@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>DailyBrief AI — The daily news briefing</title>
+<title>DailyBrief AI | Newsroom</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <style>
 :root{color-scheme:dark}
@@ -28,27 +28,6 @@ details[open] summary:after{content:"−"}
 #toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:60;max-width:90vw}
 dialog{background:#101a2b;color:#e8edf5;border:1px solid #34465f;border-radius:18px;width:min(760px,calc(100% - 24px));max-height:90vh}
 dialog::backdrop{background:rgba(0,0,0,.72)}
-
-:root{color-scheme:dark;--ink:#edf2f7;--muted:#9aa9bc;--line:#2a3a4e;--surface:#111c2e;--accent:#8bd5ca}
-body{background:#0a1019;color:var(--ink);font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
-header{background:rgba(10,16,25,.94);position:sticky;top:0;z-index:30;backdrop-filter:blur(14px)}
-.panel,.article-card{background:#101a28;border-color:#28374a}
-.article-card{border-radius:14px}
-.article-card:hover{transform:translateY(-3px);border-color:#52706f}
-.btn-primary,.chip.active{background:#256b61;border-color:#256b61}
-.btn-primary:hover,.chip.active:hover{background:#2c8174}
-.field:focus{outline-color:#8bd5ca}
-.prose{color:#c9d4e1;line-height:1.8}
-#news{align-items:stretch}
-.article-card h3{letter-spacing:-.02em}
-.article-card img{height:190px;background:#172333}
-.article-card .btn{min-height:40px}
-#articleDialog{box-shadow:0 30px 100px #0009}
-#articleBody section{max-width:68ch}
-#articleBody h3{font-size:1.05rem;letter-spacing:-.01em}
-#status{min-height:24px}
-button:focus-visible,a:focus-visible,input:focus-visible{outline:3px solid #8bd5ca;outline-offset:3px}
-@media(max-width:640px){.article-card img{height:205px}main{padding-top:1rem!important}}
 </style>
 </head>
 <body>
@@ -99,18 +78,6 @@ button:focus-visible,a:focus-visible,input:focus-visible{outline:3px solid #8bd5
         <input id="search" class="field rounded-xl px-4 py-3 w-full sm:w-72" type="search" placeholder="Search headlines and stories">
       </div>
 
-      <div class="flex flex-col sm:flex-row gap-3 mb-4">
-        <label class="sr-only" for="dateFilter">Filter by time</label>
-        <select id="dateFilter" class="field rounded-xl px-3 py-2 text-sm">
-          <option value="all">Any time</option><option value="24h">Past 24 hours</option>
-          <option value="7d">Past 7 days</option><option value="30d">Past 30 days</option>
-        </select>
-        <label class="sr-only" for="sortOrder">Sort articles</label>
-        <select id="sortOrder" class="field rounded-xl px-3 py-2 text-sm">
-          <option value="newest">Newest first</option><option value="oldest">Oldest first</option>
-        </select>
-        <button id="clearFilters" class="btn">Clear filters</button>
-      </div>
       <nav id="categories" class="flex flex-wrap gap-2 mb-6">
         <button class="chip active" data-category="All">All</button>
         <button class="chip" data-category="Pakistan">Pakistan</button>
@@ -264,14 +231,7 @@ function renderNews() {
 
     const cat = categoryName(article.category);
     const categoryMatch = activeCategory === 'All' || cat === activeCategory;
-    const published = article.published_at ? new Date(article.published_at).getTime() : 0;
-    const dateMatch = age === 'all' || (published > 0 && now - published <= maxAge);
-    return categoryMatch && dateMatch && searchText(article).includes(query);
-  });
-  filtered.sort((a,b) => {
-    const aa = a.published_at ? new Date(a.published_at).getTime() : 0;
-    const bb = b.published_at ? new Date(b.published_at).getTime() : 0;
-    return ($('sortOrder')?.value === 'oldest' ? aa-bb : bb-aa);
+    return categoryMatch && searchText(article).includes(query);
   });
 
   $('news').innerHTML = '';
@@ -525,16 +485,6 @@ $('signOut').addEventListener('click',async () => {
 });
 
 $('search').addEventListener('input',renderNews);
-$('dateFilter').addEventListener('change',renderNews);
-$('sortOrder').addEventListener('change',renderNews);
-$('clearFilters').addEventListener('click',() => {
-  $('search').value = '';
-  $('dateFilter').value = 'all';
-  $('sortOrder').value = 'newest';
-  activeCategory = 'All';
-  document.querySelectorAll('#categories .chip').forEach((item,index) => item.classList.toggle('active',index === 0));
-  renderNews();
-});
 
 $('categories').addEventListener('click',event => {
   const button = event.target.closest('[data-category]');
@@ -582,7 +532,7 @@ supabase.auth.onAuthStateChange(async (_event,session) => {
   user = session?.user || null;
   $('authOpen').classList.toggle('hidden',!!user);
   $('signOut').classList.toggle('hidden',!user);
-  $('connection').textContent = user ? 'Personal newsroom' : 'Public news';
+  $('connection').textContent = user ? 'Signed in' : 'Public news';
 
   await loadStates();
   renderNews();
