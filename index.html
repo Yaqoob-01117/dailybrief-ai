@@ -6,28 +6,50 @@
 <title>DailyBrief AI | Newsroom</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <style>
-:root{color-scheme:dark}
-body{background:#0b1220;color:#e8edf5;font-family:Inter,Arial,sans-serif}
-.panel{background:#111c2e;border:1px solid #26364d}
-.muted{color:#93a4ba}
-.field{background:#0b1220;border:1px solid #33445c;color:#e8edf5}
-.field:focus{outline:2px solid #60a5fa;outline-offset:1px}
-.btn{border:1px solid #34465f;border-radius:10px;padding:9px 13px;font-size:14px}
-.btn-primary{background:#2563eb;border-color:#2563eb;color:white}
-.btn:hover{filter:brightness(1.12)}
-.chip{border:1px solid #34465f;border-radius:999px;padding:8px 14px;font-size:13px;white-space:nowrap}
+:root{color-scheme:dark;--navy:#07111f;--panel:#101d30;--line:#243750;--blue:#3b82f6;--cyan:#67e8f9}
+*{box-sizing:border-box}
+body{background:radial-gradient(ellipse at 78% 0%,#10294a 0%,#0b1728 38%,#07111f 78%);color:#edf4ff;font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+.panel{background:rgba(16,29,48,.88);border:1px solid #263b56;box-shadow:0 18px 50px rgba(0,0,0,.16)}
+.muted{color:#9aacc3}
+.field{background:#091525;border:1px solid #2d4360;color:#edf4ff;transition:border-color .2s,box-shadow .2s}
+.field:focus{outline:none;border-color:#60a5fa;box-shadow:0 0 0 3px rgba(59,130,246,.17)}
+.btn{border:1px solid #344b68;border-radius:11px;padding:10px 15px;font-size:14px;font-weight:600;transition:all .2s}
+.btn-primary{background:linear-gradient(135deg,#2563eb,#0e9bd8);border-color:#3985ed;color:white;box-shadow:0 8px 22px rgba(37,99,235,.2)}
+.btn:hover{filter:brightness(1.12);transform:translateY(-1px)}
+.chip{border:1px solid #344b68;border-radius:999px;padding:8px 14px;font-size:13px;white-space:nowrap;background:rgba(13,27,45,.7)}
 .chip.active{background:#2563eb;border-color:#2563eb;color:white}
-.article-card{background:#111c2e;border:1px solid #26364d;border-radius:16px;overflow:hidden;transition:transform .15s,border-color .15s}
-.article-card:hover{transform:translateY(-2px);border-color:#49617f}
-.article-card img{width:100%;height:180px;object-fit:cover}
-.prose{color:#c2cede;line-height:1.75;white-space:pre-line}
+.article-card{background:linear-gradient(160deg,#12243a,#0d1a2b);border:1px solid #263b56;border-radius:18px;overflow:hidden;transition:transform .2s,border-color .2s,box-shadow .2s}
+.article-card:hover{transform:translateY(-4px);border-color:#4b78aa;box-shadow:0 18px 35px rgba(0,0,0,.2)}
+.article-card img{width:100%;height:190px;object-fit:cover}
+.prose{color:#c2cede;line-height:1.8;white-space:pre-line}
 details summary{cursor:pointer;list-style:none}
 details summary::-webkit-details-marker{display:none}
 details summary:after{content:"+";float:right;color:#93c5fd}
 details[open] summary:after{content:"−"}
-#toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:60;max-width:90vw}
-dialog{background:#101a2b;color:#e8edf5;border:1px solid #34465f;border-radius:18px;width:min(760px,calc(100% - 24px));max-height:90vh}
-dialog::backdrop{background:rgba(0,0,0,.72)}
+#toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:100;max-width:90vw}
+dialog{background:#081526;color:#edf4ff;border:1px solid #2b4565;border-radius:24px;width:min(1040px,calc(100% - 28px));max-width:none;max-height:calc(100vh - 28px);padding:0;overflow:auto;box-shadow:0 30px 100px rgba(0,0,0,.55)}
+dialog::backdrop{background:rgba(2,8,18,.84);backdrop-filter:blur(9px)}
+#authDialog{width:min(1100px,calc(100% - 28px));}
+.auth-shell{display:grid;grid-template-columns:1.05fr .95fr;min-height:650px}
+.auth-visual{position:relative;overflow:hidden;padding:48px;background:linear-gradient(145deg,rgba(7,24,47,.4),rgba(7,17,31,.95)),url('https://images.unsplash.com/photo-1504711434969-e33886168f5c?auto=format&fit=crop&w=1400&q=85');background-size:cover;background-position:center;display:flex;flex-direction:column;justify-content:space-between}
+.auth-visual:before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 20% 20%,rgba(59,130,246,.3),transparent 42%),linear-gradient(120deg,rgba(7,17,31,.12),rgba(7,17,31,.65));pointer-events:none}
+.auth-visual>*{position:relative;z-index:1}
+.auth-brand{font-size:25px;font-weight:850;letter-spacing:-1.2px}
+.auth-mark{display:inline-flex;width:38px;height:38px;align-items:center;justify-content:center;border-radius:12px;background:linear-gradient(135deg,#3b82f6,#22d3ee);color:white;margin-right:10px;box-shadow:0 8px 25px #2563eb55}
+.auth-kicker{font-size:11px;letter-spacing:3px;text-transform:uppercase;color:#93c5fd;font-weight:800}
+.auth-headline{font-size:clamp(32px,4vw,48px);line-height:1.08;letter-spacing:-1.8px;font-weight:800;max-width:470px}
+.auth-feature{display:flex;gap:12px;align-items:flex-start;color:#d3e1f3;font-size:13px;line-height:1.55}
+.auth-feature-icon{width:30px;height:30px;flex:none;border-radius:9px;background:#1d4ed833;border:1px solid #60a5fa55;display:grid;place-items:center;color:#93c5fd}
+.auth-form-side{padding:48px 50px;display:flex;flex-direction:column;justify-content:center;background:linear-gradient(160deg,#101f34,#0b1728)}
+.auth-input{width:100%;padding:14px 15px;border-radius:12px;margin-top:8px;font-size:14px}
+.auth-label{display:block;color:#dbe7f6;font-size:13px;font-weight:650}
+.auth-submit{width:100%;padding:14px;border-radius:12px;font-size:14px;font-weight:750}
+.auth-tabs{display:grid;grid-template-columns:1fr 1fr;background:#091525;padding:5px;border:1px solid #263b56;border-radius:13px;gap:5px}
+.auth-tab{border:0;border-radius:9px;padding:10px;color:#9aacc3;font-size:13px;font-weight:700;background:transparent}
+.auth-tab.btn-primary{color:white}
+.auth-close{width:36px;height:36px;border-radius:10px;background:#172a41;border:1px solid #314963;color:#cbd8e8}
+.auth-note{border:1px solid #263b56;background:#0a192b;border-radius:12px;padding:12px;color:#9aacc3;font-size:12px;line-height:1.6}
+@media(max-width:760px){.auth-shell{grid-template-columns:1fr;min-height:0}.auth-visual{min-height:260px;padding:26px}.auth-headline{font-size:31px}.auth-visual .auth-features{display:none}.auth-form-side{padding:30px 24px}.auth-brand{font-size:21px}}
 </style>
 </head>
 <body>
@@ -96,30 +118,51 @@ dialog::backdrop{background:rgba(0,0,0,.72)}
   DailyBrief AI · Independent news briefing project
 </footer>
 
-<dialog id="authDialog" class="p-0">
-  <div class="p-6 sm:p-8">
-    <div class="flex justify-between items-start gap-4">
+<dialog id="authDialog">
+  <div class="auth-shell">
+    <section class="auth-visual">
+      <div class="auth-brand"><span class="auth-mark">◈</span>DailyBrief <span class="text-cyan-300">AI.</span></div>
       <div>
-        <div class="text-xl font-bold">Welcome to DailyBrief AI</div>
-        <p class="muted text-sm mt-1">Sign in or create your personal account.</p>
+        <div class="auth-kicker mb-4">A clearer view of what matters</div>
+        <h2 class="auth-headline">Stay informed.<br><span class="text-cyan-300">Think ahead.</span></h2>
+        <p class="text-sm text-slate-200/80 leading-7 mt-5 max-w-md">Your personal briefing room for the stories shaping Pakistan and the world, with context that makes the headlines easier to understand.</p>
       </div>
-      <button id="authClose" class="btn" aria-label="Close">✕</button>
-    </div>
-    <div class="flex gap-2 mt-6">
-      <button id="loginTab" class="btn btn-primary">Sign in</button>
-      <button id="signupTab" class="btn">Create account</button>
-    </div>
-    <form id="authForm" class="space-y-4 mt-5">
-      <label class="block text-sm">Email
-        <input id="authEmail" class="field rounded-lg w-full px-3 py-3 mt-1" type="email" required autocomplete="email">
-      </label>
-      <label class="block text-sm">Password
-        <input id="authPassword" class="field rounded-lg w-full px-3 py-3 mt-1" type="password" required minlength="6" autocomplete="current-password">
-      </label>
-      <button id="authSubmit" class="btn btn-primary w-full" type="submit">Sign in</button>
-      <button id="resetPassword" class="text-sm text-blue-300 underline" type="button">Forgot password?</button>
-      <p id="authMessage" class="text-sm muted" role="status"></p>
-    </form>
+      <div class="auth-features space-y-4">
+        <div class="auth-feature"><span class="auth-feature-icon">✦</span><span><strong class="text-white">The stories that matter</strong><br>Focused coverage across news, science and technology.</span></div>
+        <div class="auth-feature"><span class="auth-feature-icon">◎</span><span><strong class="text-white">Context, not just headlines</strong><br>Clear summaries and background in one reading space.</span></div>
+        <div class="auth-feature"><span class="auth-feature-icon">▣</span><span><strong class="text-white">Your own newsroom</strong><br>Save and organize stories privately in your account.</span></div>
+      </div>
+      <div class="text-xs text-slate-300/60">INDEPENDENT NEWS BRIEFING · DAILYBRIEF AI</div>
+    </section>
+    <section class="auth-form-side">
+      <div class="flex justify-between items-center mb-9">
+        <div class="text-xs tracking-[2px] uppercase text-blue-300 font-bold">Your reading space</div>
+        <button id="authClose" class="auth-close" aria-label="Close">✕</button>
+      </div>
+      <div class="mb-7">
+        <div class="text-3xl font-extrabold tracking-tight" id="authHeading">Welcome back</div>
+        <p class="muted text-sm mt-2" id="authSubheading">Sign in to continue to your personal newsroom.</p>
+      </div>
+      <div class="auth-tabs mb-6">
+        <button id="loginTab" class="auth-tab btn-primary" type="button">Sign in</button>
+        <button id="signupTab" class="auth-tab" type="button">Create account</button>
+      </div>
+      <form id="authForm" class="space-y-5">
+        <label class="auth-label">Email address
+          <input id="authEmail" class="field auth-input" type="email" placeholder="you@example.com" required autocomplete="email">
+        </label>
+        <label class="auth-label">Password
+          <input id="authPassword" class="field auth-input" type="password" placeholder="At least 6 characters" required minlength="6" autocomplete="current-password">
+        </label>
+        <button id="authSubmit" class="btn btn-primary auth-submit" type="submit">Sign in to DailyBrief</button>
+        <div class="flex justify-between items-center text-sm">
+          <span class="muted text-xs">Secure email authentication</span>
+          <button id="resetPassword" class="text-blue-300 hover:text-cyan-200" type="button">Forgot password?</button>
+        </div>
+        <p id="authMessage" class="text-sm muted" role="status" aria-live="polite"></p>
+      </form>
+      <div class="auth-note mt-7">By continuing, you access your own private reading space. Your saved, read and hidden article preferences stay linked to your account.</div>
+    </section>
   </div>
 </dialog>
 
@@ -193,8 +236,15 @@ function showAuth(mode='login') {
   $('authPassword').value = '';
   $('loginTab').classList.toggle('btn-primary', mode === 'login');
   $('signupTab').classList.toggle('btn-primary', mode === 'signup');
-  $('authSubmit').textContent = mode === 'login' ? 'Sign in' : 'Create account';
+  $('loginTab').classList.toggle('text-white', mode === 'login');
+  $('signupTab').classList.toggle('text-white', mode === 'signup');
+  $('authHeading').textContent = mode === 'login' ? 'Welcome back' : 'Create your account';
+  $('authSubheading').textContent = mode === 'login'
+    ? 'Sign in to continue to your personal newsroom.'
+    : 'Join DailyBrief AI and build your own reading space.';
+  $('authSubmit').textContent = mode === 'login' ? 'Sign in to DailyBrief' : 'Create my account';
   $('resetPassword').classList.toggle('hidden', mode !== 'login');
+  $('authPassword').autocomplete = mode === 'login' ? 'current-password' : 'new-password';
   $('authDialog').showModal();
 }
 
@@ -436,13 +486,17 @@ $('signupTab').addEventListener('click',() => showAuth('signup'));
 $('resetPassword').addEventListener('click',async () => {
   const email = $('authEmail').value.trim();
   if (!email) {
-    $('authMessage').textContent = 'Enter your email address first.';
+    $('authMessage').textContent = 'Enter your email address first, then choose Forgot password.';
+    $('authEmail').focus();
     return;
   }
+  $('authMessage').textContent = 'Sending password reset email…';
   const {error} = await supabase.auth.resetPasswordForEmail(email,{
     redirectTo:location.origin
   });
-  $('authMessage').textContent = error ? error.message : 'If the email is registered, a password reset link will arrive shortly.';
+  $('authMessage').textContent = error
+    ? error.message
+    : 'If this email is registered, a password reset link will arrive shortly. Please check your inbox.';
 });
 
 $('authForm').addEventListener('submit',async event => {
