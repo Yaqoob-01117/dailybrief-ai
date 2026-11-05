@@ -1,558 +1,1128 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#081321">
-  <meta name="description" content="DailyBrief AI — important news, clear context, and trustworthy original reporting.">
-  <title>DailyBrief AI — Understand what matters</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="DailyBrief AI helps you understand the news and why it matters.">
+  <title>DailyBrief AI — Understand the news</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
-    :root{color-scheme:dark;--bg:#081321;--surface:#0e1c2d;--surface2:#12243a;--line:#263b54;--text:#eaf1fa;--muted:#9aacc1;--blue:#60a5fa;--cyan:#67e8f9}
-    *{box-sizing:border-box}
-    html{scroll-behavior:smooth}
-    body{margin:0;background:var(--bg);color:var(--text);font-family:'DM Sans',system-ui,sans-serif}
-    h1,h2,h3,.brand{font-family:Manrope,'DM Sans',sans-serif}
-    button,input,select{font:inherit}
-    button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid #7dd3fc;outline-offset:3px}
-    .site-header{background:rgba(8,19,33,.92);backdrop-filter:blur(16px);border-bottom:1px solid rgba(148,163,184,.14)}
-    .panel{background:linear-gradient(160deg,rgba(18,36,58,.96),rgba(13,27,44,.96));border:1px solid var(--line);box-shadow:0 16px 45px rgba(0,0,0,.14)}
-    .muted{color:var(--muted)}
-    .field{background:#091625;border:1px solid #30445e;color:var(--text);border-radius:12px}
-    .field:focus{outline:none;border-color:#60a5fa;box-shadow:0 0 0 3px rgba(96,165,250,.14)}
-    .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:1px solid #344b66;border-radius:11px;padding:10px 14px;font-size:13px;font-weight:700;transition:background .18s,border-color .18s,transform .18s}
-    .btn:hover{background:#1b3049;border-color:#52749a}
-    .btn:disabled{opacity:.55;cursor:not-allowed;transform:none}
-    .btn-primary{background:#2563eb;border-color:#3b82f6;color:#fff}
-    .btn-primary:hover{background:#1d4ed8;border-color:#60a5fa}
-    .btn-quiet{background:rgba(15,31,50,.7)}
-    .chip{border:1px solid #344b66;border-radius:999px;padding:8px 13px;font-size:12px;font-weight:650;white-space:nowrap;background:#0d1c2d;color:#bdcce0}
-    .chip.active{background:#1d4ed8;border-color:#3b82f6;color:#fff}
-    .article-card{background:linear-gradient(160deg,#12243a,#0d1a2b);border:1px solid #263b56;border-radius:16px;overflow:hidden;transition:border-color .18s,transform .18s,box-shadow .18s}
-    .article-card:hover{transform:translateY(-3px);border-color:#52749a;box-shadow:0 16px 32px rgba(0,0,0,.2)}
-    .article-image{width:100%;height:190px;object-fit:cover;background:#142943}
-    .prose{color:#c4d0df;line-height:1.8;white-space:pre-line;overflow-wrap:anywhere}
-    .importance{display:inline-flex;align-items:center;border-radius:999px;padding:4px 9px;font-size:10px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;border:1px solid}
-    .importance-critical{color:#fecaca;background:#7f1d1d33;border-color:#ef444466}
-    .importance-high{color:#fed7aa;background:#9a341233;border-color:#f9731666}
-    .importance-medium{color:#fde68a;background:#854d0e33;border-color:#eab30866}
-    .importance-low{color:#bfdbfe;background:#1e40af33;border-color:#60a5fa66}
-    .importance-unrated{color:#cbd5e1;background:#33415555;border-color:#64748b66}
-    .nav-link{display:flex;width:100%;align-items:center;gap:10px;text-align:left;border-radius:10px;padding:10px 12px;color:#b9c8da;font-size:13px;font-weight:600}
-    .nav-link:hover{background:#1a2d44}
-    .nav-link.active{background:#1d4ed833;color:#bfdbfe}
-    .eyebrow{font-size:10px;letter-spacing:.16em;text-transform:uppercase;font-weight:800;color:#93c5fd}
-    dialog{background:#091625;color:var(--text);border:1px solid #2b4565;border-radius:20px;width:min(920px,calc(100% - 24px));max-width:none;max-height:calc(100vh - 24px);padding:0;overflow:auto;box-shadow:0 30px 100px #0009}
-    dialog::backdrop{background:#020812d9;backdrop-filter:blur(7px)}
-    #authDialog{width:min(1000px,calc(100% - 24px))}
-    .auth-grid{display:grid;grid-template-columns:1fr 1fr;min-height:570px}
-    .auth-art{padding:40px;background:linear-gradient(145deg,#102e50,#091625);display:flex;flex-direction:column;justify-content:space-between}
-    .auth-form{padding:42px;background:#0e1c2d;display:flex;flex-direction:column;justify-content:center}
-    .auth-input{width:100%;padding:13px 14px;margin-top:7px}
-    .auth-tabs{display:grid;grid-template-columns:1fr 1fr;padding:4px;gap:4px;background:#091625;border:1px solid var(--line);border-radius:12px}
-    .auth-tab{padding:10px;border-radius:9px;color:var(--muted);font-size:13px;font-weight:700}
-    .auth-tab.active{background:#2563eb;color:white}
-    #toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);z-index:100;max-width:90vw}
-    .skeleton{background:linear-gradient(90deg,#14263c 25%,#1b314b 45%,#14263c 65%);background-size:200% 100%;animation:shimmer 1.4s infinite;border-radius:10px}
-    @keyframes shimmer{to{background-position:-200% 0}}
-    @media(max-width:760px){.auth-grid{grid-template-columns:1fr;min-height:0}.auth-art{min-height:180px;padding:25px}.auth-art .auth-points{display:none}.auth-form{padding:28px 23px}}
-    @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;animation:none!important;transition:none!important}}
+    :root{color-scheme:dark}
+    body{background:#080f1d;color:#e5edf8;font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+    .panel{background:#101b2d;border:1px solid #24344c}
+    .muted{color:#9aabc2}
+    .chip{border:1px solid #30435f;background:#101b2d;color:#cbd5e1}
+    .chip.active{background:#1d4ed8;border-color:#3b82f6;color:white}
+    .field{background:#0b1423;border:1px solid #30435f;color:#e5edf8}
+    .field:focus{outline:2px solid #3b82f6;outline-offset:1px}
+    .btn{border:1px solid #38506f;background:#17263d;color:#e5edf8;border-radius:10px;padding:.55rem .85rem}
+    .btn:hover{background:#223653}
+    .btn-primary{background:#2563eb;border-color:#2563eb;color:white}
+    .btn-primary:hover{background:#1d4ed8}
+    .card{background:#101b2d;border:1px solid #24344c;border-radius:16px;overflow:hidden;transition:transform .15s,border-color .15s}
+    .card:hover{transform:translateY(-2px);border-color:#456184}
+    .badge{font-size:.7rem;font-weight:700;padding:.22rem .55rem;border-radius:999px}
+    .Critical{background:#7f1d1d;color:#fecaca}
+    .High{background:#78350f;color:#fde68a}
+    .Medium{background:#1e3a8a;color:#bfdbfe}
+    .Low{background:#334155;color:#cbd5e1}
+    dialog{background:#101b2d;color:#e5edf8;border:1px solid #38506f;border-radius:18px;max-width:min(760px,calc(100% - 24px));width:100%;max-height:88vh}
+    dialog::backdrop{background:rgba(0,0,0,.72);backdrop-filter:blur(3px)}
+    .proseish p{line-height:1.75;color:#cbd5e1;white-space:pre-wrap}
+    .skeleton{background:linear-gradient(90deg,#17263d,#263a56,#17263d);background-size:200% 100%;animation:shine 1.4s infinite}
+    @keyframes shine{to{background-position:-200% 0}}
+    button:disabled{opacity:.5;cursor:not-allowed}
+    a{color:#93c5fd}
+    a:hover{color:#bfdbfe}
   </style>
 </head>
-<body>
-  <header class="site-header sticky top-0 z-30">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex flex-wrap items-center justify-between gap-4">
-      <a href="#" id="homeLink" class="block" aria-label="DailyBrief AI home">
-        <div class="brand text-2xl font-extrabold tracking-tight">DailyBrief <span class="text-blue-400">AI.</span></div>
-        <div class="text-[11px] muted mt-0.5">A clearer view of what matters</div>
-      </a>
-      <div class="flex items-center gap-3">
-        <span id="connection" class="hidden sm:inline text-xs muted" aria-live="polite">Connecting…</span>
-        <button id="authOpen" class="btn btn-primary">Sign in</button>
-        <button id="accountButton" class="btn btn-quiet hidden">My account</button>
-        <button id="signOut" class="btn hidden">Sign out</button>
+
+<body class="min-h-screen">
+
+<header class="sticky top-0 z-30 border-b border-slate-800 bg-[#080f1d]/95 backdrop-blur">
+  <div class="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-4">
+    <a href="#" class="flex items-center gap-3 no-underline">
+      <div class="grid h-10 w-10 place-items-center rounded-xl bg-blue-600 text-xl font-black">D</div>
+      <div>
+        <div class="text-lg font-bold tracking-tight text-white">DailyBrief <span class="text-blue-400">AI</span></div>
+        <div class="text-xs muted">Understand the news. See why it matters.</div>
+      </div>
+    </a>
+
+    <div class="flex items-center gap-2">
+      <span id="connection" class="hidden text-xs muted sm:inline">Connecting…</span>
+      <button id="authButton" class="btn btn-primary text-sm">Sign in</button>
+      <button id="signOutButton" class="btn hidden text-sm">Sign out</button>
+    </div>
+  </div>
+</header>
+
+<main id="main" class="mx-auto max-w-7xl px-4 py-7">
+
+  <section class="mb-7 rounded-2xl border border-blue-900/60 bg-gradient-to-br from-[#142b4b] to-[#101b2d] p-6 md:p-8">
+    <div class="flex flex-wrap items-start justify-between gap-4">
+      <div class="max-w-3xl">
+        <p class="mb-2 text-xs font-bold uppercase tracking-[.2em] text-blue-300">Your daily news briefing</p>
+        <h1 class="text-3xl font-bold leading-tight text-white md:text-4xl">
+          Know what happened.<br class="hidden sm:block">
+          Understand why it matters.
+        </h1>
+        <p class="mt-3 max-w-2xl text-sm leading-6 text-slate-300">
+          A clear view of important developments, useful context, and reporting from the original publisher. Explore the facts and make up your own mind.
+        </p>
+      </div>
+
+      <div class="rounded-xl border border-slate-600/70 bg-black/15 px-4 py-3">
+        <div class="text-xs muted">Today</div>
+        <div id="todayDate" class="mt-1 font-semibold text-white"></div>
+        <div id="updatedAt" class="mt-2 text-xs muted">Checking latest update…</div>
       </div>
     </div>
-  </header>
+  </section>
 
-  <main class="max-w-7xl mx-auto px-4 sm:px-6 py-7">
-    <section class="relative overflow-hidden rounded-2xl border border-blue-900/60 p-6 md:p-9 mb-8" style="background:linear-gradient(115deg,#142b50,#102b40 62%,#0e2639)">
-      <div class="absolute -right-16 -top-24 w-80 h-80 rounded-full border border-blue-300/10"></div>
-      <div class="absolute -right-4 -top-12 w-56 h-56 rounded-full border border-cyan-300/10"></div>
-      <div class="relative">
-        <div class="eyebrow">Your independent news briefing</div>
-        <h1 class="text-3xl md:text-5xl font-extrabold leading-tight tracking-tight mt-3 max-w-3xl">Understand the news.<br><span class="text-blue-300">See why it matters.</span></h1>
-        <p class="text-blue-100/80 mt-4 max-w-2xl leading-7">Important developments from Pakistan and around the world, with concise context and links to original reporting.</p>
-        <div class="flex flex-wrap items-center gap-x-5 gap-y-2 mt-6 text-xs text-blue-200"><span id="today"></span><span id="coverageNote">A focused view of the stories in your news database.</span></div>
+  <div id="notice" class="mb-5 hidden rounded-xl border border-amber-800 bg-amber-950/40 p-4 text-sm text-amber-200" role="status"></div>
+
+  <section id="briefingSection" class="mb-9">
+    <div class="mb-4 flex items-end justify-between gap-3">
+      <div>
+        <p class="text-xs font-bold uppercase tracking-widest text-blue-300">Start here</p>
+        <h2 class="mt-1 text-2xl font-bold text-white">Today's briefing</h2>
+        <p class="mt-1 text-sm muted">A quick selection from the latest stories in your feed.</p>
       </div>
+      <span id="briefingCount" class="text-xs muted"></span>
+    </div>
+
+    <div id="briefingGrid" class="grid gap-4 md:grid-cols-3">
+      <div class="skeleton h-44 rounded-xl"></div>
+      <div class="skeleton h-44 rounded-xl"></div>
+      <div class="skeleton h-44 rounded-xl"></div>
+    </div>
+  </section>
+
+  <section id="importantSection" class="mb-9 hidden">
+    <div class="mb-4">
+      <p class="text-xs font-bold uppercase tracking-widest text-amber-300">Priority watch</p>
+      <h2 class="mt-1 text-2xl font-bold text-white">Important developments</h2>
+      <p class="mt-1 text-sm muted">Stories marked Critical or High by the editorial classification in this feed.</p>
+    </div>
+    <div id="importantGrid" class="grid gap-4 md:grid-cols-2"></div>
+  </section>
+
+  <section class="mb-5">
+    <div class="mb-4 flex flex-wrap items-end justify-between gap-3">
+      <div>
+        <p class="text-xs font-bold uppercase tracking-widest text-blue-300">Explore</p>
+        <h2 id="feedHeading" class="mt-1 text-2xl font-bold text-white">Latest news</h2>
+        <p id="feedDescription" class="mt-1 text-sm muted">Browse the latest stories available in DailyBrief AI.</p>
+      </div>
+
+      <div class="flex flex-wrap gap-2">
+        <button class="btn text-sm" data-view="latest">Latest</button>
+        <button class="btn text-sm" data-view="saved">Saved</button>
+        <button class="btn text-sm" data-view="history">Reading history</button>
+        <button class="btn text-sm" data-view="hidden">Hidden</button>
+      </div>
+    </div>
+
+    <div class="panel mb-4 rounded-2xl p-4">
+      <div class="grid gap-3 md:grid-cols-4">
+
+        <label class="md:col-span-2">
+          <span class="mb-1 block text-xs muted">Search loaded stories</span>
+          <input id="searchInput" class="field w-full rounded-lg px-3 py-2.5 text-sm" type="search" placeholder="Search headlines, summaries or publishers…">
+        </label>
+
+        <label>
+          <span class="mb-1 block text-xs muted">Topic</span>
+          <select id="categoryFilter" class="field w-full rounded-lg px-3 py-2.5 text-sm">
+            <option value="">All topics</option>
+          </select>
+        </label>
+
+        <label>
+          <span class="mb-1 block text-xs muted">Publisher</span>
+          <select id="publisherFilter" class="field w-full rounded-lg px-3 py-2.5 text-sm">
+            <option value="">All publishers</option>
+          </select>
+        </label>
+
+        <label>
+          <span class="mb-1 block text-xs muted">Importance</span>
+          <select id="importanceFilter" class="field w-full rounded-lg px-3 py-2.5 text-sm">
+            <option value="">All levels</option>
+            <option>Critical</option>
+            <option>High</option>
+            <option>Medium</option>
+            <option>Low</option>
+            <option value="Not rated">Not rated</option>
+          </select>
+        </label>
+
+        <label>
+          <span class="mb-1 block text-xs muted">Sort by</span>
+          <select id="sortFilter" class="field w-full rounded-lg px-3 py-2.5 text-sm">
+            <option value="newest">Newest first</option>
+            <option value="importance">Importance first</option>
+            <option value="oldest">Oldest first</option>
+          </select>
+        </label>
+
+        <div class="flex items-end">
+          <button id="clearFilters" class="btn w-full text-sm">Clear filters</button>
+        </div>
+      </div>
+
+      <div id="topicChips" class="mt-4 flex flex-wrap gap-2"></div>
+    </div>
+
+    <div class="mb-3 flex items-center justify-between">
+      <p id="resultCount" class="text-sm muted">Loading stories…</p>
+      <button id="refreshButton" class="text-sm text-blue-300 hover:text-white">↻ Refresh</button>
+    </div>
+
+    <div id="feedGrid" class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <div class="skeleton h-80 rounded-2xl"></div>
+      <div class="skeleton h-80 rounded-2xl"></div>
+      <div class="skeleton h-80 rounded-2xl"></div>
+    </div>
+
+    <div class="mt-7 text-center">
+      <button id="loadMoreButton" class="btn btn-primary hidden">Load more stories</button>
+    </div>
+
+    <div id="emptyState" class="hidden rounded-2xl border border-dashed border-slate-700 p-10 text-center">
+      <div class="text-lg font-semibold text-white">No stories found</div>
+      <p class="mt-2 text-sm muted">Try changing your search or filters.</p>
+    </div>
+  </section>
+
+  <section class="mt-12 rounded-2xl border border-slate-800 bg-[#0d1727] p-5">
+    <h2 class="font-semibold text-white">Our editorial approach</h2>
+    <p class="mt-2 max-w-4xl text-sm leading-6 muted">
+      DailyBrief AI organizes stories and provides concise context to help readers understand them. Importance labels are editorial guidance, not a guarantee of accuracy or a measure of truth. Always review the original reporting, check dates and details, and compare coverage when a story is consequential.
+    </p>
+    <p class="mt-3 text-xs muted">
+      DailyBrief AI is an independent news-reading interface. Article rights and reporting belong to their respective publishers.
+    </p>
+  </section>
+
+</main>
+
+<dialog id="articleDialog" class="p-0">
+  <div class="flex items-center justify-between border-b border-slate-700 px-5 py-4">
+    <span class="text-sm font-semibold text-blue-300">DailyBrief AI · Article briefing</span>
+    <button class="btn" data-close="articleDialog" aria-label="Close">✕</button>
+  </div>
+  <article id="articleContent" class="proseish p-5 md:p-7"></article>
+</dialog>
+
+<dialog id="authDialog" class="p-0">
+  <div class="flex items-center justify-between border-b border-slate-700 px-5 py-4">
+    <h2 class="font-semibold">Your DailyBrief account</h2>
+    <button class="btn" data-close="authDialog">✕</button>
+  </div>
+
+  <form id="authForm" class="space-y-4 p-6">
+    <div>
+      <label class="mb-1 block text-sm muted" for="authEmail">Email</label>
+      <input id="authEmail" type="email" required autocomplete="email" class="field w-full rounded-lg px-3 py-2.5">
+    </div>
+
+    <div>
+      <label class="mb-1 block text-sm muted" for="authPassword">Password</label>
+      <input id="authPassword" type="password" required minlength="6" autocomplete="current-password" class="field w-full rounded-lg px-3 py-2.5">
+    </div>
+
+    <div class="flex flex-wrap gap-2">
+      <button id="loginButton" class="btn btn-primary" type="submit">Sign in</button>
+      <button id="signupButton" class="btn" type="button">Create account</button>
+      <button id="resetButton" class="text-sm text-blue-300" type="button">Forgot password?</button>
+    </div>
+
+    <p id="authMessage" class="text-sm muted" role="status"></p>
+  </form>
+</dialog>
+
+<script>
+const SUPABASE_URL = 'https://iiaucnlsowwkwqscqsbv.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_aqeMqpp4ZogfJt4_iWDdfQ_RVQIrcgU';
+
+const PAGE_SIZE = 24;
+
+const supabaseClient = window.supabase.createClient(
+  SUPABASE_URL,
+  SUPABASE_ANON_KEY
+);
+
+const $ = id => document.getElementById(id);
+
+const state = {
+  user: null,
+  articles: [],
+  articleStates: new Map(),
+  offset: 0,
+  hasMore: true,
+  loading: false,
+  view: 'latest',
+  activeArticle: null
+};
+
+const importanceRank = {
+  Critical: 4,
+  High: 3,
+  Medium: 2,
+  Low: 1
+};
+
+const safeText = value =>
+  String(value ?? '').replace(/[&<>"']/g, ch => ({
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#39;'
+  }[ch]));
+
+const importanceOf = article => {
+  const raw = String(
+    article.importance_level ?? article.importance ?? ''
+  ).trim().toLowerCase();
+
+  return ({
+    critical: 'Critical',
+    high: 'High',
+    medium: 'Medium',
+    low: 'Low'
+  })[raw] || 'Not rated';
+};
+
+const safeLink = value => {
+  try {
+    const url = new URL(value);
+    return ['http:', 'https:'].includes(url.protocol) ? url.href : '';
+  } catch {
+    return '';
+  }
+};
+
+const formatDate = value => {
+  if (!value) return 'Date unavailable';
+
+  const date = new Date(value);
+
+  return Number.isNaN(date.getTime())
+    ? 'Date unavailable'
+    : date.toLocaleString(undefined, {
+        dateStyle: 'medium',
+        timeStyle: 'short'
+      });
+};
+
+const categoryName = value => {
+  const raw = String(value || 'General').trim();
+
+  const key = raw.toLowerCase()
+    .replace(/[\/_-]/g, ' ')
+    .replace(/\s+/g, ' ');
+
+  if (['technology ai', 'technology and ai', 'tech ai'].includes(key)) {
+    return 'Technology & AI';
+  }
+
+  if (['business economy', 'business and economy'].includes(key)) {
+    return 'Business & Economy';
+  }
+
+  return raw;
+};
+
+const articleState = id =>
+  state.articleStates.get(String(id)) || {
+    is_read: false,
+    is_saved: false,
+    is_hidden: false
+  };
+
+const setNotice = (message, show = true) => {
+  $('notice').textContent = message;
+  $('notice').classList.toggle('hidden', !show);
+};
+
+const setAuthMessage = message => {
+  $('authMessage').textContent = message;
+};
+
+function buildCard(article, compact = false) {
+  const id = String(article.id);
+  const saved = articleState(id).is_saved;
+  const importance = importanceOf(article);
+  const image = safeLink(article.image_url);
+  const publisher = article.publisher || 'Publisher not listed';
+
+  const summary = article.summary ||
+    'Open this briefing to review the available story details and original source.';
+
+  return `
+    <article class="card flex h-full flex-col">
+
+      ${image ? `
+        <img
+          src="${safeText(image)}"
+          alt=""
+          loading="lazy"
+          class="h-40 w-full object-cover"
+          onerror="this.style.display='none'"
+        >
+      ` : ''}
+
+      <div class="flex flex-1 flex-col p-4">
+
+        <div class="mb-3 flex flex-wrap items-center gap-2">
+          <span class="badge ${importance === 'Not rated' ? 'Low' : importance}">
+            ${safeText(importance)}
+          </span>
+          <span class="text-xs muted">
+            ${safeText(categoryName(article.category))}
+          </span>
+        </div>
+
+        <h3 class="text-base font-bold leading-snug text-white">
+          ${safeText(article.title || 'Untitled story')}
+        </h3>
+
+        <p class="mt-2 text-sm leading-6 text-slate-300">
+          ${safeText(summary)}
+        </p>
+
+        <div class="mt-auto pt-4">
+
+          <div class="mb-3 flex flex-wrap items-center justify-between gap-2 text-xs muted">
+            <span>${safeText(publisher)}</span>
+            <time>${safeText(formatDate(article.published_at || article.created_at))}</time>
+          </div>
+
+          <div class="flex gap-2">
+            <button class="btn btn-primary flex-1 text-sm" data-open="${safeText(id)}">
+              Read briefing
+            </button>
+
+            <button class="btn text-sm" data-save="${safeText(id)}">
+              ${saved ? '★ Saved' : '☆ Save'}
+            </button>
+          </div>
+
+        </div>
+      </div>
+    </article>
+  `;
+}
+
+function renderBriefing() {
+  const picks = [...state.articles]
+    .filter(a => !articleState(a.id).is_hidden)
+    .sort((a, b) =>
+      (importanceRank[importanceOf(b)] || 0) -
+      (importanceRank[importanceOf(a)] || 0) ||
+      new Date(b.published_at || b.created_at) -
+      new Date(a.published_at || a.created_at)
+    )
+    .slice(0, 3);
+
+  $('briefingCount').textContent =
+    `${picks.length} selected from loaded stories`;
+
+  $('briefingGrid').innerHTML = picks.length
+    ? picks.map(a => buildCard(a, true)).join('')
+    : '<p class="text-sm muted">No stories are available for the briefing yet.</p>';
+}
+
+function renderImportant() {
+  const picks = state.articles
+    .filter(a =>
+      !articleState(a.id).is_hidden &&
+      ['Critical', 'High'].includes(importanceOf(a))
+    )
+    .sort((a, b) =>
+      (importanceRank[importanceOf(b)] || 0) -
+      (importanceRank[importanceOf(a)] || 0) ||
+      new Date(b.published_at || b.created_at) -
+      new Date(a.published_at || a.created_at)
+    )
+    .slice(0, 4);
+
+  $('importantSection').classList.toggle('hidden', !picks.length);
+
+  $('importantGrid').innerHTML =
+    picks.map(a => buildCard(a, true)).join('');
+}
+
+function renderFilters() {
+  const cats = [
+    ...new Set(
+      state.articles.map(a => categoryName(a.category)).filter(Boolean)
+    )
+  ].sort();
+
+  const pubs = [
+    ...new Set(state.articles.map(a => a.publisher).filter(Boolean))
+  ].sort();
+
+  const catValue = $('categoryFilter').value;
+  const pubValue = $('publisherFilter').value;
+
+  $('categoryFilter').innerHTML =
+    '<option value="">All topics</option>' +
+    cats.map(c => `
+      <option value="${safeText(c)}">${safeText(c)}</option>
+    `).join('');
+
+  $('publisherFilter').innerHTML =
+    '<option value="">All publishers</option>' +
+    pubs.map(p => `
+      <option value="${safeText(p)}">${safeText(p)}</option>
+    `).join('');
+
+  $('categoryFilter').value = cats.includes(catValue) ? catValue : '';
+  $('publisherFilter').value = pubs.includes(pubValue) ? pubValue : '';
+
+  $('topicChips').innerHTML = [
+    'All topics',
+    ...cats
+  ].map(c => `
+    <button
+      class="chip rounded-full px-3 py-1.5 text-xs ${
+        ((c === 'All topics' && !catValue) || c === catValue)
+          ? 'active'
+          : ''
+      }"
+      data-topic="${safeText(c === 'All topics' ? '' : c)}"
+    >
+      ${safeText(c)}
+    </button>
+  `).join('');
+}
+
+function getVisibleArticles() {
+  const q = $('searchInput').value.trim().toLowerCase();
+  const cat = $('categoryFilter').value;
+  const pub = $('publisherFilter').value;
+  const imp = $('importanceFilter').value;
+
+  let list = [...state.articles];
+
+  if (state.view === 'saved') {
+    list = list.filter(a => articleState(a.id).is_saved);
+  }
+
+  if (state.view === 'history') {
+    list = list.filter(a => articleState(a.id).is_read);
+  }
+
+  if (state.view === 'hidden') {
+    list = list.filter(a => articleState(a.id).is_hidden);
+  } else if (state.view === 'latest') {
+    list = list.filter(a => !articleState(a.id).is_hidden);
+  }
+
+  if (q) {
+    list = list.filter(a =>
+      [
+        a.title,
+        a.summary,
+        a.background,
+        a.why_it_matters,
+        a.publisher,
+        a.category
+      ].some(v => String(v || '').toLowerCase().includes(q))
+    );
+  }
+
+  if (cat) {
+    list = list.filter(a => categoryName(a.category) === cat);
+  }
+
+  if (pub) {
+    list = list.filter(a => a.publisher === pub);
+  }
+
+  if (imp) {
+    list = list.filter(a =>
+      imp === 'Not rated'
+        ? importanceOf(a) === 'Not rated'
+        : importanceOf(a) === imp
+    );
+  }
+
+  const sort = $('sortFilter').value;
+
+  if (sort === 'importance') {
+    list.sort((a, b) =>
+      (importanceRank[importanceOf(b)] || 0) -
+      (importanceRank[importanceOf(a)] || 0) ||
+      new Date(b.published_at || b.created_at) -
+      new Date(a.published_at || a.created_at)
+    );
+  } else {
+    list.sort((a, b) =>
+      sort === 'oldest'
+        ? new Date(a.published_at || a.created_at) -
+          new Date(b.published_at || b.created_at)
+        : new Date(b.published_at || b.created_at) -
+          new Date(a.published_at || a.created_at)
+    );
+  }
+
+  return list;
+}
+
+function renderFeed() {
+  const headings = {
+    latest: [
+      'Latest news',
+      'Browse the latest stories available in DailyBrief AI.'
+    ],
+    saved: [
+      'Saved stories',
+      'Articles you have saved to read later.'
+    ],
+    history: [
+      'Reading history',
+      'Stories you have opened and marked as read.'
+    ],
+    hidden: [
+      'Hidden stories',
+      'Stories hidden from your latest feed.'
+    ]
+  };
+
+  $('feedHeading').textContent = headings[state.view][0];
+  $('feedDescription').textContent = headings[state.view][1];
+
+  document.querySelectorAll('[data-view]').forEach(b => {
+    b.classList.toggle('btn-primary', b.dataset.view === state.view);
+  });
+
+  const list = getVisibleArticles();
+
+  $('resultCount').textContent =
+    `Showing ${list.length} matching stories among ${state.articles.length} loaded`;
+
+  $('feedGrid').innerHTML = list.map(a => buildCard(a)).join('');
+
+  $('emptyState').classList.toggle('hidden', list.length !== 0);
+
+  $('loadMoreButton').classList.toggle(
+    'hidden',
+    !state.hasMore || state.view !== 'latest'
+  );
+
+  $('loadMoreButton').disabled = state.loading;
+
+  $('loadMoreButton').textContent =
+    state.loading ? 'Loading…' : 'Load more stories';
+}
+
+async function loadArticleStates() {
+  state.articleStates.clear();
+
+  if (!state.user) return;
+
+  const ids = state.articles.map(a => a.id);
+
+  if (!ids.length) return;
+
+  const { data, error } = await supabaseClient
+    .from('user_article_state')
+    .select('article_id,is_read,is_saved,is_hidden')
+    .eq('user_id', state.user.id)
+    .in('article_id', ids);
+
+  if (error) {
+    console.error(error);
+
+    setNotice(
+      'Your stories loaded, but personal saved/read status could not be loaded. Check the user_article_state table permissions.'
+    );
+
+    return;
+  }
+
+  (data || []).forEach(row => {
+    state.articleStates.set(String(row.article_id), row);
+  });
+}
+
+async function loadStories(reset = false) {
+  if (state.loading) return;
+
+  state.loading = true;
+
+  if (reset) {
+    state.offset = 0;
+    state.articles = [];
+    state.hasMore = true;
+  }
+
+  renderFeed();
+
+  try {
+    const from = state.offset;
+    const to = from + PAGE_SIZE - 1;
+
+    const { data, error } = await supabaseClient
+      .from('news')
+      .select('*')
+      .order('published_at', {
+        ascending: false,
+        nullsFirst: false
+      })
+      .order('created_at', {
+        ascending: false
+      })
+      .range(from, to);
+
+    if (error) throw error;
+
+    const rows = data || [];
+
+    state.articles = reset
+      ? rows
+      : [...state.articles, ...rows];
+
+    state.offset += rows.length;
+    state.hasMore = rows.length === PAGE_SIZE;
+
+    await loadArticleStates();
+
+    $('connection').textContent = '● Connected';
+    $('connection').className = 'text-xs text-emerald-400';
+
+    setNotice('', false);
+
+    const newest = [...state.articles]
+      .map(a => new Date(a.created_at || a.published_at).getTime())
+      .filter(Number.isFinite)
+      .sort((a, b) => b - a)[0];
+
+    $('updatedAt').textContent = newest
+      ? `Latest record: ${formatDate(newest)}`
+      : 'No update time available';
+
+    renderFilters();
+    renderBriefing();
+    renderImportant();
+    renderFeed();
+
+  } catch (error) {
+    console.error(error);
+
+    $('connection').textContent = '● Connection issue';
+    $('connection').className = 'text-xs text-rose-400';
+
+    setNotice(
+      `Could not load news: ${error.message || 'Unknown error'}. Check the Supabase connection, news table, and read permissions.`
+    );
+
+    $('feedGrid').innerHTML = '';
+    $('resultCount').textContent = 'News could not be loaded.';
+
+  } finally {
+    state.loading = false;
+    renderFeed();
+  }
+}
+
+async function saveArticleState(articleId, changes) {
+  if (!state.user) {
+    $('authDialog').showModal();
+
+    setAuthMessage(
+      'Sign in to save stories and keep your reading history.'
+    );
+
+    return;
+  }
+
+  const current = articleState(articleId);
+
+  const payload = {
+    user_id: state.user.id,
+    article_id: articleId,
+    is_read: current.is_read || false,
+    is_saved: current.is_saved || false,
+    is_hidden: current.is_hidden || false,
+    ...changes
+  };
+
+  const { data, error } = await supabaseClient
+    .from('user_article_state')
+    .upsert(payload, {
+      onConflict: 'user_id,article_id'
+    })
+    .select()
+    .single();
+
+  if (error) {
+    alert(`Could not update your story: ${error.message}`);
+    return;
+  }
+
+  state.articleStates.set(String(articleId), data);
+
+  renderBriefing();
+  renderImportant();
+  renderFeed();
+}
+
+function openArticle(id) {
+  const article = state.articles.find(
+    a => String(a.id) === String(id)
+  );
+
+  if (!article) return;
+
+  state.activeArticle = article;
+
+  const source = safeLink(article.source_url);
+  const image = safeLink(article.image_url);
+  const imp = importanceOf(article);
+  const saved = articleState(id).is_saved;
+
+  const facts = Array.isArray(article.key_facts)
+    ? article.key_facts
+    : (
+        typeof article.key_facts === 'string'
+          ? article.key_facts.split(/\n/).filter(Boolean)
+          : []
+      );
+
+  $('articleContent').innerHTML = `
+    ${image ? `
+      <img
+        src="${safeText(image)}"
+        alt=""
+        class="mb-5 max-h-80 w-full rounded-xl object-cover"
+        onerror="this.style.display='none'"
+      >
+    ` : ''}
+
+    <div class="mb-3 flex flex-wrap items-center gap-2">
+      <span class="badge ${imp === 'Not rated' ? 'Low' : imp}">
+        ${safeText(imp)} importance
+      </span>
+
+      <span class="text-xs muted">
+        ${safeText(categoryName(article.category))}
+      </span>
+    </div>
+
+    <h1 class="text-2xl font-bold leading-tight text-white md:text-3xl">
+      ${safeText(article.title || 'Untitled story')}
+    </h1>
+
+    <p class="mt-3 text-xs muted">
+      ${safeText(article.publisher || 'Publisher not listed')}
+      ·
+      ${safeText(formatDate(article.published_at || article.created_at))}
+    </p>
+
+    <section class="mt-7">
+      <h2 class="mb-2 text-lg font-bold text-white">Summary</h2>
+      <p>${safeText(article.summary || 'No summary is available for this story.')}</p>
     </section>
 
-    <div class="grid lg:grid-cols-[218px_minmax(0,1fr)] gap-6 lg:gap-8">
-      <aside class="space-y-4">
-        <div class="panel rounded-2xl p-3">
-          <div class="eyebrow px-3 py-2">Your newsroom</div>
-          <nav aria-label="Reading lists" class="space-y-1">
-            <button class="nav-link active" data-view="all"><span>◫</span> Latest news</button>
-            <button class="nav-link" data-view="saved"><span>☆</span> Saved articles</button>
-            <button class="nav-link" data-view="read"><span>◷</span> Reading history</button>
-            <button class="nav-link" data-view="hidden"><span>⊘</span> Hidden articles</button>
-          </nav>
-        </div>
-        <div class="panel rounded-2xl p-4">
-          <div class="text-sm font-bold">Editorial standard</div>
-          <p class="muted text-xs leading-5 mt-2">DailyBrief organizes stories from publishers. AI-assisted summaries are a reading aid, not a replacement for original reporting.</p>
-        </div>
-      </aside>
-
-      <section class="min-w-0" aria-label="News feed">
-        <div class="flex flex-col xl:flex-row xl:items-end justify-between gap-4 mb-5">
-          <div>
-            <div class="eyebrow">DailyBrief feed</div>
-            <h2 id="pageTitle" class="text-2xl font-extrabold mt-1">Latest news</h2>
-            <p id="pageDescription" class="muted text-sm mt-1">Recent stories from your news database.</p>
-          </div>
-          <label class="w-full xl:w-80"><span class="sr-only">Search news</span><input id="search" class="field w-full px-4 py-3 text-sm" type="search" placeholder="Search headlines and stories" autocomplete="off"></label>
-        </div>
-
-        <div class="flex flex-wrap gap-2 mb-4" id="categories" aria-label="Filter by category">
-          <button class="chip active" data-category="All">All topics</button>
-          <button class="chip" data-category="Pakistan">Pakistan</button>
-          <button class="chip" data-category="World">World</button>
-          <button class="chip" data-category="Technology & AI">Technology &amp; AI</button>
-          <button class="chip" data-category="Science">Science</button>
-          <button class="chip" data-category="Business & Economy">Business &amp; Economy</button>
-          <button class="chip" data-category="Health">Health</button>
-          <button class="chip" data-category="Education">Education</button>
-        </div>
-
-        <div class="panel rounded-xl p-3 mb-5 flex flex-wrap items-center gap-3">
-          <label class="text-xs muted flex items-center gap-2">Sort
-            <select id="sort" class="field px-3 py-2 text-xs"><option value="newest">Newest first</option><option value="importance">Importance first</option></select>
-          </label>
-          <label class="text-xs muted flex items-center gap-2">Importance
-            <select id="importanceFilter" class="field px-3 py-2 text-xs"><option value="All">All levels</option><option value="Critical">Critical</option><option value="High">High</option><option value="Medium">Medium</option><option value="Low">Low</option><option value="Not rated">Not rated</option></select>
-          </label>
-          <button id="clearFilters" class="text-xs text-blue-300 hover:text-cyan-200 font-bold ml-auto">Clear filters</button>
-        </div>
-
-        <div class="flex items-center justify-between gap-3 mb-3"><p id="status" class="muted text-sm" role="status" aria-live="polite">Connecting to your news database…</p><span id="pageCounter" class="muted text-xs"></span></div>
-        <section id="news" class="grid sm:grid-cols-2 xl:grid-cols-3 gap-5" aria-live="polite"></section>
-        <div id="pagination" class="flex items-center justify-center gap-3 mt-8 hidden">
-          <button id="previousPage" class="btn">Previous</button><span id="pageLabel" class="text-xs muted"></span><button id="nextPage" class="btn btn-primary">Next</button>
-        </div>
+    ${article.background ? `
+      <section class="mt-6">
+        <h2 class="mb-2 text-lg font-bold text-white">Background</h2>
+        <p>${safeText(article.background)}</p>
       </section>
+    ` : ''}
+
+    ${article.why_it_matters ? `
+      <section class="mt-6">
+        <h2 class="mb-2 text-lg font-bold text-white">Why it matters</h2>
+        <p>${safeText(article.why_it_matters)}</p>
+      </section>
+    ` : ''}
+
+    ${facts.length ? `
+      <section class="mt-6">
+        <h2 class="mb-2 text-lg font-bold text-white">Key points</h2>
+        <ul class="list-disc space-y-2 pl-5 text-slate-300">
+          ${facts.map(f => `<li>${safeText(f)}</li>`).join('')}
+        </ul>
+      </section>
+    ` : ''}
+
+    <div class="mt-7 rounded-xl border border-slate-700 bg-slate-900/60 p-4 text-xs leading-5 muted">
+      This is an AI-assisted briefing based on information available in DailyBrief AI. Summaries may omit context or contain errors. Consult the original publisher before relying on details.
     </div>
-  </main>
 
-  <footer class="border-t border-slate-800 mt-10 py-7 text-center muted text-xs">DailyBrief AI · Independent news briefing project</footer>
+    <div class="mt-5 flex flex-wrap gap-2">
 
-  <dialog id="authDialog" aria-labelledby="authHeading">
-    <div class="auth-grid">
-      <section class="auth-art">
-        <div class="brand text-2xl font-extrabold">◈ DailyBrief <span class="text-cyan-300">AI.</span></div>
-        <div><div class="eyebrow mb-3">A clearer view of what matters</div><h2 class="text-4xl font-extrabold leading-tight">Stay informed.<br><span class="text-cyan-300">Think ahead.</span></h2><p class="text-sm text-slate-200/75 leading-7 mt-4">Your personal briefing room for the stories shaping Pakistan and the world.</p></div>
-        <div class="auth-points space-y-3 text-sm text-slate-200/85"><p>✦ Focused coverage across news, science and technology.</p><p>◎ Context and background alongside the headlines.</p><p>▣ A private reading space for your saved stories.</p></div>
-        <div class="text-[10px] tracking-widest text-slate-300/50">INDEPENDENT NEWS BRIEFING</div>
-      </section>
-      <section class="auth-form">
-        <div class="flex justify-between items-center mb-8"><span class="eyebrow">Your reading space</span><button id="authClose" class="btn" aria-label="Close sign in">✕</button></div>
-        <h2 id="authHeading" class="text-3xl font-extrabold">Welcome back</h2><p id="authSubheading" class="muted text-sm mt-2 mb-6">Sign in to continue to your personal newsroom.</p>
-        <div class="auth-tabs mb-5"><button id="loginTab" class="auth-tab active" type="button">Sign in</button><button id="signupTab" class="auth-tab" type="button">Create account</button></div>
-        <form id="authForm" class="space-y-4">
-          <label class="block text-sm font-semibold">Email address<input id="authEmail" class="field auth-input" type="email" placeholder="you@example.com" required autocomplete="email"></label>
-          <label class="block text-sm font-semibold">Password<input id="authPassword" class="field auth-input" type="password" placeholder="At least 6 characters" required minlength="6" autocomplete="current-password"></label>
-          <button id="authSubmit" class="btn btn-primary w-full py-3" type="submit">Sign in to DailyBrief</button>
-          <div class="flex justify-between items-center gap-3"><span class="muted text-[11px]">Secure email authentication</span><button id="resetPassword" class="text-blue-300 hover:text-cyan-200 text-xs" type="button">Forgot password?</button></div>
-          <p id="authMessage" class="text-sm muted" role="status" aria-live="polite"></p>
-        </form>
-        <p class="muted text-[11px] leading-5 mt-5">Your saved, read and hidden article preferences are linked to your account and protected by database access policies.</p>
-      </section>
+      <button class="btn btn-primary" data-dialog-save="${safeText(id)}">
+        ${saved ? '★ Saved' : '☆ Save story'}
+      </button>
+
+      <button class="btn" data-dialog-read="${safeText(id)}">
+        Mark as read
+      </button>
+
+      <button class="btn" data-dialog-hide="${safeText(id)}">
+        Hide story
+      </button>
+
+      ${source ? `
+        <a
+          class="btn no-underline"
+          href="${safeText(source)}"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Read original source ↗
+        </a>
+      ` : ''}
+
     </div>
-  </dialog>
+  `;
 
-  <dialog id="articleDialog" aria-labelledby="articleTitle">
-    <article class="p-5 sm:p-8">
-      <div class="flex justify-between items-start gap-4 mb-5"><div id="articleMeta" class="text-xs text-blue-300"></div><button id="articleClose" class="btn shrink-0" aria-label="Close article">✕</button></div>
-      <h2 id="articleTitle" class="text-2xl sm:text-3xl font-extrabold leading-tight"></h2>
-      <div id="articleSource" class="muted text-xs mt-3"></div>
-      <div class="flex flex-wrap gap-2 mt-5"><button id="articleSave" class="btn">☆ Save</button><button id="articleRead" class="btn">Mark unread</button><button id="articleHide" class="btn">Hide for me</button></div>
-      <div class="border-t border-slate-700 my-6"></div>
-      <div id="articleBody" class="space-y-6"></div>
-      <div class="mt-7 rounded-xl border border-slate-700 bg-slate-900/50 p-4"><p class="text-xs text-slate-300 leading-6">AI-assisted summaries may contain errors or omit nuance. Check the original publisher for the complete report and any subsequent updates.</p><a id="articleOriginal" class="inline-block text-blue-300 underline underline-offset-4 mt-3 text-sm" target="_blank" rel="noopener noreferrer">Read original article ↗</a></div>
-    </article>
-  </dialog>
+  $('articleDialog').showModal();
 
-  <div id="toast" class="hidden rounded-xl bg-slate-800 border border-slate-600 px-4 py-3 text-sm shadow-xl" role="status" aria-live="polite"></div>
+  saveArticleState(id, {
+    is_read: true,
+    read_at: new Date().toISOString()
+  });
+}
 
-  <script type="module">
-    import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+async function signIn(email, password) {
+  const { error } = await supabaseClient.auth.signInWithPassword({
+    email,
+    password
+  });
 
-    // The publishable key is intended for browser use. Never put a service-role key here.
-    const SUPABASE_URL = 'https://iiaucnlsowwkwqscqsbv.supabase.co';
-    const SUPABASE_KEY = 'sb_publishable_aqeMqpp4ZogfJt4_iWDdfQ_RVQIrcgU';
-    const supabase = createClient(SUPABASE_URL, SUPABASE_KEY, {
-      auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
+  if (error) throw error;
+
+  $('authDialog').close();
+  setAuthMessage('');
+}
+
+async function signUp(email, password) {
+  const { data, error } = await supabaseClient.auth.signUp({
+    email,
+    password
+  });
+
+  if (error) throw error;
+
+  setAuthMessage(
+    data.session
+      ? 'Account created and signed in.'
+      : 'Account created. Check your email if confirmation is required.'
+  );
+
+  if (data.session) {
+    $('authDialog').close();
+  }
+}
+
+document.addEventListener('click', async event => {
+  const target = event.target.closest('button');
+
+  if (!target) return;
+
+  if (target.dataset.close) {
+    $(target.dataset.close).close();
+    return;
+  }
+
+  if (target.dataset.open) {
+    openArticle(target.dataset.open);
+    return;
+  }
+
+  if (target.dataset.save) {
+    const id = target.dataset.save;
+
+    await saveArticleState(id, {
+      is_saved: !articleState(id).is_saved
     });
 
-    const $ = id => document.getElementById(id);
-    const PAGE_SIZE = 18;
-    const IMPORTANCE_ORDER = { Critical: 4, High: 3, Medium: 2, Low: 1, 'Not rated': 0 };
-    let articles = [];
-    let states = new Map();
-    let user = null;
-    let activeCategory = 'All';
-    let activeView = 'all';
-    let authMode = 'login';
-    let currentArticle = null;
-    let currentPage = 1;
-    let toastTimer;
-    let authRequest = false;
+    return;
+  }
 
-    $('today').textContent = new Date().toLocaleDateString('en-PK', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+  if (target.dataset.dialogSave) {
+    const id = target.dataset.dialogSave;
 
-    function esc(value = '') {
-      return String(value).replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' })[c]);
-    }
-    function safeUrl(value = '') {
-      try { const url = new URL(String(value)); return ['http:', 'https:'].includes(url.protocol) ? url.href : ''; }
-      catch { return ''; }
-    }
-    function notify(message) {
-      $('toast').textContent = message;
-      $('toast').classList.remove('hidden');
-      clearTimeout(toastTimer);
-      toastTimer = setTimeout(() => $('toast').classList.add('hidden'), 3500);
-    }
-    function showAuth(mode = 'login') {
-      authMode = mode;
-      $('authMessage').textContent = '';
-      $('authPassword').value = '';
-      $('loginTab').classList.toggle('active', mode === 'login');
-      $('signupTab').classList.toggle('active', mode === 'signup');
-      $('authHeading').textContent = mode === 'login' ? 'Welcome back' : 'Create your account';
-      $('authSubheading').textContent = mode === 'login' ? 'Sign in to continue to your personal newsroom.' : 'Join DailyBrief AI and build your own reading space.';
-      $('authSubmit').textContent = mode === 'login' ? 'Sign in to DailyBrief' : 'Create my account';
-      $('resetPassword').classList.toggle('hidden', mode !== 'login');
-      $('authPassword').autocomplete = mode === 'login' ? 'current-password' : 'new-password';
-      $('authDialog').showModal();
-    }
-    function normalizeCategory(value = '') {
-      const raw = String(value).trim();
-      const c = raw.toLowerCase().replace(/\s+/g, ' ');
-      // Deliberately conservative: do not classify a story from arbitrary body keywords.
-      if (['pakistan','national','local','pakistan news'].includes(c)) return 'Pakistan';
-      if (['world','international','global','world news'].includes(c)) return 'World';
-      if (['technology','tech','ai','technology/ai','technology & ai','artificial intelligence'].includes(c)) return 'Technology & AI';
-      if (['science','research','space'].includes(c)) return 'Science';
-      if (['business','economy','business & economy','finance','markets'].includes(c)) return 'Business & Economy';
-      if (['health','medicine','public health'].includes(c)) return 'Health';
-      if (['education','schools','universities'].includes(c)) return 'Education';
-      return raw || 'Uncategorized';
-    }
-    function importanceOf(article) {
-      const raw = String(article.importance_level ?? article.importance ?? '').trim().toLowerCase();
-      const known = { critical:'Critical', high:'High', medium:'Medium', low:'Low' };
-      return known[raw] || 'Not rated';
-    }
-    function getState(articleId) {
-      return states.get(String(articleId)) || { is_read:false, is_saved:false, is_hidden:false, read_at:null };
-    }
-    function searchText(article) {
-      return [article.title, article.summary, article.background, article.why_it_matters, article.key_facts, article.category, article.publisher].join(' ').toLowerCase();
-    }
-    function formatDate(value, withTime = false) {
-      if (!value) return 'Date unavailable';
-      const date = new Date(value);
-      if (Number.isNaN(date.getTime())) return 'Date unavailable';
-      return date.toLocaleString('en-PK', withTime
-        ? { day:'numeric', month:'short', year:'numeric', hour:'numeric', minute:'2-digit' }
-        : { day:'numeric', month:'short', year:'numeric' });
-    }
-    function importanceBadge(level) {
-      const cls = { Critical:'critical', High:'high', Medium:'medium', Low:'low', 'Not rated':'unrated' }[level] || 'unrated';
-      return `<span class="importance importance-${cls}">${esc(level)}</span>`;
-    }
-    function filteredArticles() {
-      const query = $('search').value.trim().toLowerCase();
-      const level = $('importanceFilter').value;
-      const result = articles.filter(article => {
-        const state = getState(article.id);
-        if (activeView === 'saved' && !state.is_saved) return false;
-        if (activeView === 'read' && !state.is_read) return false;
-        if (activeView === 'hidden' && !state.is_hidden) return false;
-        if (activeView !== 'hidden' && state.is_hidden) return false;
-        const cat = normalizeCategory(article.category);
-        if (activeCategory !== 'All' && cat !== activeCategory) return false;
-        if (level !== 'All' && importanceOf(article) !== level) return false;
-        return !query || searchText(article).includes(query);
-      });
-      const sort = $('sort').value;
-      result.sort((a,b) => {
-        if (sort === 'importance') {
-          const diff = IMPORTANCE_ORDER[importanceOf(b)] - IMPORTANCE_ORDER[importanceOf(a)];
-          if (diff) return diff;
-        }
-        const ta = new Date(a.published_at || a.created_at || 0).getTime() || 0;
-        const tb = new Date(b.published_at || b.created_at || 0).getTime() || 0;
-        return tb - ta;
-      });
-      return result;
-    }
-    function renderNews() {
-      const filtered = filteredArticles();
-      const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
-      currentPage = Math.min(currentPage, totalPages);
-      const start = (currentPage - 1) * PAGE_SIZE;
-      const pageItems = filtered.slice(start, start + PAGE_SIZE);
-      $('news').innerHTML = '';
-      $('pageCounter').textContent = filtered.length ? `${start + 1}–${Math.min(start + PAGE_SIZE, filtered.length)} of ${filtered.length}` : '';
-      $('pagination').classList.toggle('hidden', filtered.length <= PAGE_SIZE);
-      $('previousPage').disabled = currentPage <= 1;
-      $('nextPage').disabled = currentPage >= totalPages;
-      $('pageLabel').textContent = `Page ${currentPage} of ${totalPages}`;
-
-      if (!pageItems.length) {
-        $('status').textContent = articles.length ? 'No matching stories. Try changing your search or filters.' : 'No news articles are available yet.';
-        $('news').innerHTML = `<div class="panel rounded-2xl p-8 sm:p-12 text-center sm:col-span-2 xl:col-span-3"><div class="text-3xl mb-3">◈</div><h3 class="font-bold text-lg">${articles.length ? 'No stories match these filters' : 'Your newsroom is waiting for its first stories'}</h3><p class="muted text-sm mt-2">${articles.length ? 'Clear a filter or try a different search term.' : 'New articles will appear here when your n8n workflow stores them in Supabase.'}</p></div>`;
-        return;
-      }
-      $('status').textContent = `${filtered.length} ${filtered.length === 1 ? 'story' : 'stories'} in this view`;
-      for (const article of pageItems) {
-        const state = getState(article.id);
-        const imageUrl = safeUrl(article.image_url);
-        const level = importanceOf(article);
-        const category = normalizeCategory(article.category);
-        const image = imageUrl
-          ? `<img class="article-image" src="${esc(imageUrl)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.remove()">`
-          : `<div class="article-image flex items-center justify-center text-4xl text-blue-200/70">◈</div>`;
-        const card = document.createElement('article');
-        card.className = 'article-card flex flex-col';
-        card.innerHTML = `${image}<div class="p-5 flex flex-col flex-1">
-          <div class="flex flex-wrap items-center justify-between gap-2 mb-3"><span class="text-[11px] font-bold text-blue-300">${esc(category)}</span>${importanceBadge(level)}</div>
-          <h3 class="text-[17px] font-extrabold leading-snug">${esc(article.title || 'Untitled article')}</h3>
-          <p class="prose text-sm mt-3 line-clamp-4">${esc(article.summary || 'Summary not available.')}</p>
-          <div class="flex items-center justify-between gap-2 mt-5 pt-4 border-t border-slate-700"><span class="text-xs muted truncate">${esc(article.publisher || 'Publisher unavailable')}</span><span class="text-[11px] muted shrink-0">${esc(formatDate(article.published_at))}</span></div>
-          <div class="flex items-center gap-2 mt-4"><button class="btn btn-primary flex-1" data-open="${esc(article.id)}">Read briefing</button><button class="btn" data-save="${esc(article.id)}" aria-label="${state.is_saved ? 'Remove saved article' : 'Save article'}">${state.is_saved ? '★' : '☆'}</button></div>
-          ${state.is_read ? '<div class="text-[10px] text-emerald-300 mt-3">✓ Read</div>' : ''}
-        </div>`;
-        $('news').appendChild(card);
-      }
-    }
-    async function loadNews() {
-      $('status').textContent = 'Loading the latest stories…';
-      const { data, error } = await supabase.from('news').select('*').order('published_at', { ascending:false, nullsFirst:false }).limit(500);
-      if (error) {
-        $('status').textContent = `Could not load news: ${error.message}`;
-        $('news').innerHTML = '<div class="panel rounded-xl p-5 text-sm muted sm:col-span-2 xl:col-span-3">Check the Supabase connection, table permissions, and Row Level Security policies for public news reading.</div>';
-        console.error('News query failed:', error);
-        return;
-      }
-      // Remove duplicate IDs defensively; the database should still enforce primary-key uniqueness.
-      const seen = new Set();
-      articles = (data || []).filter(row => {
-        const key = String(row.id);
-        if (seen.has(key)) return false;
-        seen.add(key);
-        return true;
-      });
-      await loadStates();
-      currentPage = 1;
-      renderNews();
-    }
-    async function loadStates() {
-      states = new Map();
-      if (!user) return;
-      const { data, error } = await supabase.from('user_article_state')
-        .select('article_id,is_read,is_saved,is_hidden,read_at').eq('user_id', user.id);
-      if (error) {
-        notify('Could not load your personal reading preferences.');
-        console.error('Reading-state query failed:', error);
-        return;
-      }
-      for (const row of data || []) states.set(String(row.article_id), row);
-    }
-    async function saveState(articleId, changes) {
-      if (!user) { showAuth(); return false; }
-      const old = getState(articleId);
-      const next = { ...old, ...changes };
-      const payload = {
-        user_id:user.id, article_id:articleId,
-        is_read:!!next.is_read, is_saved:!!next.is_saved,
-        is_hidden:!!next.is_hidden, read_at:next.read_at || null
-      };
-      const { data, error } = await supabase.from('user_article_state')
-        .upsert(payload, { onConflict:'user_id,article_id' })
-        .select('article_id,is_read,is_saved,is_hidden,read_at').single();
-      if (error) {
-        notify(`Could not save your change: ${error.message}`);
-        console.error('Reading-state update failed:', error);
-        return false;
-      }
-      states.set(String(articleId), data);
-      renderNews();
-      if (currentArticle && String(currentArticle.id) === String(articleId)) updateArticleControls();
-      return true;
-    }
-    function updateArticleControls() {
-      if (!currentArticle) return;
-      const state = getState(currentArticle.id);
-      $('articleSave').textContent = state.is_saved ? '★ Saved' : '☆ Save';
-      $('articleRead').textContent = state.is_read ? 'Mark unread' : 'Mark read';
-      $('articleHide').textContent = state.is_hidden ? 'Restore to feed' : 'Hide for me';
-    }
-    function addArticleSection(title, value, note = '') {
-      if (value === null || value === undefined || String(value).trim() === '') return '';
-      return `<section><h3 class="font-bold text-blue-200 mb-2">${esc(title)}</h3>${note ? `<p class="text-[11px] text-slate-400 mb-2">${esc(note)}</p>` : ''}<p class="prose">${esc(value)}</p></section>`;
-    }
-    async function openArticle(articleId) {
-      const article = articles.find(item => String(item.id) === String(articleId));
-      if (!article) return;
-      currentArticle = article;
-      const level = importanceOf(article);
-      $('articleMeta').innerHTML = `${esc(normalizeCategory(article.category))} · ${importanceBadge(level)}`;
-      $('articleTitle').textContent = article.title || 'Untitled article';
-      $('articleSource').textContent = `${article.publisher || 'Publisher unavailable'} · ${formatDate(article.published_at, true)}`;
-      $('articleBody').innerHTML = [
-        addArticleSection('AI-assisted summary', article.summary),
-        addArticleSection('Background and context', article.background, 'Context supplied with the stored article record.'),
-        addArticleSection('Why it matters', article.why_it_matters, 'Explanation supplied with the stored article record.'),
-        addArticleSection('Key facts', article.key_facts)
-      ].filter(Boolean).join('') || '<p class="muted">No briefing details are available for this story yet.</p>';
-      const original = safeUrl(article.source_url);
-      $('articleOriginal').href = original || '#';
-      $('articleOriginal').classList.toggle('hidden', !original);
-      if (!original) $('articleOriginal').textContent = 'Original article link unavailable';
-      else $('articleOriginal').textContent = 'Read original article ↗';
-      updateArticleControls();
-      $('articleDialog').showModal();
-      if (user && !getState(article.id).is_read) await saveState(article.id, { is_read:true, read_at:new Date().toISOString() });
-    }
-
-    $('news').addEventListener('click', async event => {
-      const openButton = event.target.closest('[data-open]');
-      const saveButton = event.target.closest('[data-save]');
-      if (openButton) await openArticle(openButton.dataset.open);
-      if (saveButton) {
-        const state = getState(saveButton.dataset.save);
-        await saveState(saveButton.dataset.save, { is_saved:!state.is_saved });
-      }
-    });
-    $('articleSave').addEventListener('click', async () => { if (currentArticle) await saveState(currentArticle.id, { is_saved:!getState(currentArticle.id).is_saved }); });
-    $('articleRead').addEventListener('click', async () => {
-      if (!currentArticle) return;
-      const state = getState(currentArticle.id);
-      await saveState(currentArticle.id, { is_read:!state.is_read, read_at:state.is_read ? null : new Date().toISOString() });
-    });
-    $('articleHide').addEventListener('click', async () => {
-      if (!currentArticle) return;
-      const wasHidden = getState(currentArticle.id).is_hidden;
-      const ok = await saveState(currentArticle.id, { is_hidden:!wasHidden });
-      if (ok) { $('articleDialog').close(); notify(wasHidden ? 'Story restored to your feed.' : 'Story hidden from your feed.'); }
-    });
-    $('articleClose').addEventListener('click', () => $('articleDialog').close());
-    $('authClose').addEventListener('click', () => $('authDialog').close());
-    $('authOpen').addEventListener('click', () => showAuth());
-    $('accountButton').addEventListener('click', () => { activeView='saved'; setViewUI(); window.scrollTo({top:0,behavior:'smooth'}); });
-    $('loginTab').addEventListener('click', () => showAuth('login'));
-    $('signupTab').addEventListener('click', () => showAuth('signup'));
-
-    $('resetPassword').addEventListener('click', async () => {
-      const email = $('authEmail').value.trim();
-      if (!email) { $('authMessage').textContent = 'Enter your email address first, then choose Forgot password.'; $('authEmail').focus(); return; }
-      $('authMessage').textContent = 'Sending password reset email…';
-      const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo:location.origin });
-      $('authMessage').textContent = error ? error.message : 'If this email is registered, a password reset link will arrive shortly. Check your inbox.';
-    });
-    $('authForm').addEventListener('submit', async event => {
-      event.preventDefault();
-      if (authRequest) return;
-      authRequest = true;
-      const email = $('authEmail').value.trim();
-      const password = $('authPassword').value;
-      $('authSubmit').disabled = true;
-      $('authMessage').textContent = 'Please wait…';
-      try {
-        const result = authMode === 'signup'
-          ? await supabase.auth.signUp({ email, password, options:{ emailRedirectTo:location.origin } })
-          : await supabase.auth.signInWithPassword({ email, password });
-        if (result.error) { $('authMessage').textContent = result.error.message; return; }
-        if (authMode === 'signup' && !result.data.session) {
-          $('authMessage').textContent = 'Account created. Check your email and confirm your address before signing in.';
-          return;
-        }
-        $('authDialog').close();
-        notify(authMode === 'signup' ? 'Account created.' : 'Signed in.');
-      } catch (error) {
-        $('authMessage').textContent = error.message || 'Authentication failed. Please try again.';
-      } finally {
-        authRequest = false;
-        $('authSubmit').disabled = false;
-      }
-    });
-    $('signOut').addEventListener('click', async () => {
-      const { error } = await supabase.auth.signOut();
-      if (error) notify(error.message); else notify('Signed out.');
+    await saveArticleState(id, {
+      is_saved: !articleState(id).is_saved
     });
 
-    function resetToFirstPage() { currentPage = 1; renderNews(); }
-    $('search').addEventListener('input', resetToFirstPage);
-    $('sort').addEventListener('change', resetToFirstPage);
-    $('importanceFilter').addEventListener('change', resetToFirstPage);
-    $('categories').addEventListener('click', event => {
-      const button = event.target.closest('[data-category]');
-      if (!button) return;
-      activeCategory = button.dataset.category;
-      document.querySelectorAll('#categories .chip').forEach(item => item.classList.toggle('active', item === button));
-      resetToFirstPage();
-    });
-    const viewInfo = {
-      all:['Latest news','Recent stories from your news database.'],
-      saved:['Saved articles','Stories you have saved to your account.'],
-      read:['Reading history','Stories you have opened and marked as read.'],
-      hidden:['Hidden articles','Stories hidden from your personal feed.']
-    };
-    function setViewUI() {
-      $('pageTitle').textContent = viewInfo[activeView][0];
-      $('pageDescription').textContent = viewInfo[activeView][1];
-      document.querySelectorAll('.nav-link').forEach(item => item.classList.toggle('active', item.dataset.view === activeView));
-      resetToFirstPage();
-    }
-    document.querySelectorAll('.nav-link').forEach(button => button.addEventListener('click', () => { activeView = button.dataset.view; setViewUI(); }));
-    $('previousPage').addEventListener('click', () => { if (currentPage > 1) { currentPage--; renderNews(); window.scrollTo({top:350,behavior:'smooth'}); } });
-    $('nextPage').addEventListener('click', () => { const total = Math.ceil(filteredArticles().length / PAGE_SIZE); if (currentPage < total) { currentPage++; renderNews(); window.scrollTo({top:350,behavior:'smooth'}); } });
-    $('clearFilters').addEventListener('click', () => {
-      activeCategory = 'All'; $('search').value = ''; $('sort').value = 'newest'; $('importanceFilter').value = 'All';
-      document.querySelectorAll('#categories .chip').forEach(item => item.classList.toggle('active', item.dataset.category === 'All'));
-      resetToFirstPage();
-    });
-    $('homeLink').addEventListener('click', event => {
-      event.preventDefault(); activeView = 'all'; activeCategory = 'All'; $('search').value = ''; $('sort').value = 'newest'; $('importanceFilter').value = 'All';
-      document.querySelectorAll('#categories .chip').forEach(item => item.classList.toggle('active', item.dataset.category === 'All'));
-      setViewUI(); window.scrollTo({top:0,behavior:'smooth'});
+    openArticle(id);
+    return;
+  }
+
+  if (target.dataset.dialogRead) {
+    await saveArticleState(target.dataset.dialogRead, {
+      is_read: true,
+      read_at: new Date().toISOString()
     });
 
-    // One initial session read, then respond to subsequent auth changes.
-    supabase.auth.onAuthStateChange((_event, session) => {
-      const nextUser = session?.user || null;
-      const changed = user?.id !== nextUser?.id;
-      user = nextUser;
-      $('authOpen').classList.toggle('hidden', !!user);
-      $('accountButton').classList.toggle('hidden', !user);
-      $('signOut').classList.toggle('hidden', !user);
-      $('connection').textContent = user ? 'Signed in' : 'Public news';
-      if (changed) queueMicrotask(async () => { await loadStates(); renderNews(); });
+    $('articleDialog').close();
+    return;
+  }
+
+  if (target.dataset.dialogHide) {
+    await saveArticleState(target.dataset.dialogHide, {
+      is_hidden: true
     });
-    const { data:{ session }, error:sessionError } = await supabase.auth.getSession();
-    if (sessionError) console.warn('Could not restore auth session:', sessionError);
-    user = session?.user || null;
-    $('authOpen').classList.toggle('hidden', !!user);
-    $('accountButton').classList.toggle('hidden', !user);
-    $('signOut').classList.toggle('hidden', !user);
-    $('connection').textContent = user ? 'Signed in' : 'Public news';
-    await loadNews();
-  </script>
+
+    $('articleDialog').close();
+    return;
+  }
+
+  if (target.dataset.view) {
+    state.view = target.dataset.view;
+    renderFeed();
+    return;
+  }
+
+  if (target.dataset.topic !== undefined) {
+    $('categoryFilter').value = target.dataset.topic;
+    renderFilters();
+    renderFeed();
+    return;
+  }
+});
+
+[
+  'searchInput',
+  'categoryFilter',
+  'publisherFilter',
+  'importanceFilter',
+  'sortFilter'
+].forEach(id => {
+  $(id).addEventListener(
+    id === 'searchInput' ? 'input' : 'change',
+    renderFeed
+  );
+});
+
+$('clearFilters').addEventListener('click', () => {
+  $('searchInput').value = '';
+  $('categoryFilter').value = '';
+  $('publisherFilter').value = '';
+  $('importanceFilter').value = '';
+  $('sortFilter').value = 'newest';
+
+  renderFilters();
+  renderFeed();
+});
+
+$('refreshButton').addEventListener('click', () => {
+  loadStories(true);
+});
+
+$('loadMoreButton').addEventListener('click', () => {
+  loadStories(false);
+});
+
+$('authButton').addEventListener('click', () => {
+  $('authDialog').showModal();
+  setAuthMessage('');
+});
+
+$('signOutButton').addEventListener('click', async () => {
+  const { error } = await supabaseClient.auth.signOut();
+
+  if (error) {
+    alert(error.message);
+  }
+});
+
+$('authForm').addEventListener('submit', async event => {
+  event.preventDefault();
+
+  try {
+    await signIn(
+      $('authEmail').value.trim(),
+      $('authPassword').value
+    );
+  } catch (error) {
+    setAuthMessage(error.message);
+  }
+});
+
+$('signupButton').addEventListener('click', async () => {
+  try {
+    await signUp(
+      $('authEmail').value.trim(),
+      $('authPassword').value
+    );
+  } catch (error) {
+    setAuthMessage(error.message);
+  }
+});
+
+$('resetButton').addEventListener('click', async () => {
+  const email = $('authEmail').value.trim();
+
+  if (!email) {
+    setAuthMessage('Enter your email address first.');
+    return;
+  }
+
+  const { error } = await supabaseClient.auth.resetPasswordForEmail(
+    email,
+    {
+      redirectTo: location.origin
+    }
+  );
+
+  setAuthMessage(
+    error
+      ? error.message
+      : 'If this email is registered, a password reset link will be sent.'
+  );
+});
+
+$('todayDate').textContent = new Date().toLocaleDateString(
+  undefined,
+  {
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  }
+);
+
+supabaseClient.auth.onAuthStateChange(async (_event, session) => {
+  state.user = session?.user || null;
+
+  $('authButton').classList.toggle('hidden', !!state.user);
+  $('authButton').textContent = state.user ? 'Account' : 'Sign in';
+
+  $('signOutButton').classList.toggle('hidden', !state.user);
+
+  if (state.articles.length) {
+    await loadArticleStates();
+    renderBriefing();
+    renderImportant();
+    renderFeed();
+  }
+});
+
+(async () => {
+  const { data } = await supabaseClient.auth.getSession();
+
+  state.user = data.session?.user || null;
+
+  $('authButton').classList.toggle('hidden', !!state.user);
+  $('signOutButton').classList.toggle('hidden', !state.user);
+
+  await loadStories(true);
+})();
+</script>
+
 </body>
 </html>
